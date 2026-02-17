@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #d8d9dd 0%, #d1ced4 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .logo { display: flex; align-items: center; gap: 15px; }
+        
+        .robot-icon {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+        
+        .logo h1 { font-size: 24px; color: #2d3748; font-weight: 700; }
+        .nav { display: flex; gap: 30px; }
+        .nav a { text-decoration: none; color: #4a5568; font-weight: 500; transition: color 0.3s; }
+        .nav a:hover { color: #667eea; }
+        
+        .main-content { padding: 40px; }
+        .input-section { display: flex; gap: 15px; margin-bottom: 30px; }
+        
+        .input-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-wrapper { flex: 1; display: flex; gap: 15px; }
+        
+        #topicInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        #topicInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .generate-btn {
+            padding: 15px 40px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .generate-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37,99,235,0.3);
+        }
+        
+        .generate-btn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .summary-section, .mcq-section {
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 400px;
+        }
+        
+        .summary-section { background: #dbeafe; }
+        .mcq-section { background: #dcfce7; }
+        
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        
+        .summary-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            line-height: 1.8;
+            color: #334155;
+            margin-bottom: 20px;
+        }
+        
+        .bot-message { display: flex; align-items: start; gap: 15px; margin-top: 20px; }
+        
+        .bot-avatar {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .bot-bubble {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        .mcq-list { display: flex; flex-direction: column; gap: 25px; }
+        .mcq-item { background: white; padding: 20px; border-radius: 10px; }
+        
+        .mcq-question {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .mcq-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .mcq-option {
+            padding: 10px 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            color: #475569;
+            font-size: 14px;
+        }
+        
+        .correct-answer { color: #0ea5e9; font-weight: 600; font-size: 14px; }
+        
+        .pdf-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px auto 0;
+            padding: 15px 40px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pdf-button:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37,99,235,0.3);
+        }
+        
+        .pdf-button:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state-icon { font-size: 60px; margin-bottom: 15px; }
+        
+        @media (max-width: 768px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .input-section { flex-direction: column; }
+            .input-label { min-width: auto; }
+            .header { padding: 15px 20px; }
+            .main-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="robot-icon">🤖</div>
+                <h1>AI Study Assistant</h1>
+            </div>
+            <nav class="nav">
+                <a href="#">Home</a>
+                <a href="#">History</a>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <label class="input-label">Enter a Study Topic:</label>
+                <div class="input-wrapper">
+                    <input type="text" id="topicInput" placeholder="E.g., Quantum Computing">
+                    <button class="generate-btn" id="generateBtn">Generate</button>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="summary-section">
+                    <h2 class="section-title">Summary</h2>
+                    <div id="summaryContent">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📚</div>
+                            <p>Enter a topic and click Generate to see the summary</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mcq-section">
+                    <h2 class="section-title">Multiple Choice Questions</h2>
+                    <div id="mcqContent">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❓</div>
+                            <p>MCQ questions will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="pdf-button" id="pdfBtn" disabled>
+                <span>📥</span> Generate PDF
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let currentData = { topic: '', summary: '', mcqs: [] };
+
+        document.getElementById('generateBtn').addEventListener('click', generateContent);
+        document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+        document.getElementById('topicInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateContent();
+        });
+
+        async function generateContent() {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) { alert('Please enter a study topic'); return; }
+
+            currentData.topic = topic;
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Generating...';
+
+            showLoading('summaryContent');
+            showLoading('mcqContent');
+
+            try {
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-20250514',
+                        max_tokens: 1000,
+                        messages: [{
+                            role: 'user',
+                            content: `Generate educational content for the topic: "${topic}"
+
+Please provide:
+1. A clear, concise summary (3-4 sentences)
+2. Exactly 4 multiple choice questions with 4 options each (A, B, C, D)
+
+Format your response as JSON:
+{
+  "summary": "Your summary here",
+  "mcqs": [
+    {
+      "question": "Question text?",
+      "options": {
+        "A": "Option A",
+        "B": "Option B", 
+        "C": "Option C",
+        "D": "Option D"
+      },
+      "correct": "B"
+    }
+  ]
+}
+
+Make the questions educational and relevant to the topic.`
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                const content = data.content[0].text;
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                
+                if (jsonMatch) {
+                    const parsedData = JSON.parse(jsonMatch[0]);
+                    currentData.summary = parsedData.summary;
+                    currentData.mcqs = parsedData.mcqs;
+                    displaySummary(parsedData.summary);
+                    displayMCQs(parsedData.mcqs);
+                    document.getElementById('pdfBtn').disabled = false;
+                } else {
+                    throw new Error('Failed to parse AI response');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('summaryContent').innerHTML = `
+                    <div style="color:#ef4444;text-align:center;padding:20px">
+                        <p>❌ Error generating content. Please try again.</p>
+                    </div>`;
+                document.getElementById('mcqContent').innerHTML = '';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate';
+            }
+        }
+
+        function showLoading(id) {
+            document.getElementById(id).innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Generating content...</span>
+                </div>`;
+        }
+
+        function displaySummary(summary) {
+            document.getElementById('summaryContent').innerHTML = `
+                <div class="summary-content">${summary}</div>
+                <div class="bot-message">
+                    <div class="bot-avatar">🤖</div>
+                    <div class="bot-bubble">Here is the summary on your topic!</div>
+                </div>`;
+        }
+
+        function displayMCQs(mcqs) {
+            const mcqHTML = mcqs.map((mcq, idx) => `
+                <div class="mcq-item">
+                    <div class="mcq-question">${idx+1}. ${mcq.question}</div>
+                    <div class="mcq-options">
+                        <div class="mcq-option">(A) ${mcq.options.A}</div>
+                        <div class="mcq-option">(C) ${mcq.options.C}</div>
+                        <div class="mcq-option">(B) ${mcq.options.B}</div>
+                        <div class="mcq-option">(D) ${mcq.options.D}</div>
+                    </div>
+                    <div class="correct-answer">Correct Answer: ${mcq.correct}</div>
+                </div>`).join('');
+            document.getElementById('mcqContent').innerHTML = `<div class="mcq-list">${mcqHTML}</div>`;
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(20);
+            doc.setTextColor(37,99,235);
+            doc.text('AI Study Assistant', 105, 20, {align:'center'});
+
+            doc.setFontSize(16);
+            doc.setTextColor(0,0,0);
+            doc.text(`Topic: ${currentData.topic}`, 20, 35);
+
+            doc.setFontSize(14);
+            doc.setTextColor(37,99,235);
+            doc.text('Summary:', 20, 50);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(0,0,0);
+            const summaryLines = doc.splitTextToSize(currentData.summary, 170);
+            doc.text(summaryLines, 20, 60);
+
+            let yPos = 60 + (summaryLines.length * 7) + 15;
+            doc.setFontSize(14);
+            doc.setTextColor(37,99,235);
+            doc.text('Multiple Choice Questions:', 20, yPos);
+            yPos += 10;
+
+            currentData.mcqs.forEach((mcq, idx) => {
+                if (yPos > 250) { doc.addPage(); yPos = 20; }
+                doc.setFontSize(12);
+                doc.setTextColor(0,0,0);
+                doc.text(`${idx+1}. ${mcq.question}`, 20, yPos);
+                yPos += 8;
+                doc.setFontSize(10);
+                Object.entries(mcq.options).forEach(([key, val]) => {
+                    doc.text(`   (${key}) ${val}`, 25, yPos);
+                    yPos += 6;
+                });
+                doc.setTextColor(37,99,235);
+                doc.text(`   Correct Answer: ${mcq.correct}`, 25, yPos);
+                doc.setTextColor(0,0,0);
+                yPos += 12;
+            });
+
+            doc.save(`${currentData.topic.replace(/\s+/g, '_')}_study_guide.pdf`);
+        }
+    </script>
+</body>
+</html>
