@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – AI Study Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #d8d9dd 0%, #d1ced4 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 100vh;
+            width: 60px;
+            background: linear-gradient(180deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            z-index: 1000;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        .sidebar.expanded { width: 170px; }
+
+        .hamburger {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-left: 4px;
+        }
+        .hamburger:hover { background: rgba(255,255,255,0.15); }
+        .hamburger span {
+            display: block;
+            width: 22px; height: 3px;
+            background: white;
+            border-radius: 3px;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            padding: 0 8px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.85);
+            padding: 12px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-link:hover { background: rgba(255,255,255,0.2); color: white; }
+        .sidebar-icon { font-size: 20px; flex-shrink: 0; }
+        .sidebar-label {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .sidebar.expanded .sidebar-label { opacity: 1; pointer-events: auto; }
+
+        /* ── Page wrapper ── */
+        .page-wrapper {
+            margin-left: 60px;
+            flex: 1;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-wrapper.sidebar-expanded { margin-left: 170px; }
+
+        /* ── Card container ── */
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            flex: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .robot-icon {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+        }
+        .logo h1 { font-size: 24px; color: #2d3748; font-weight: 700; }
+
+        .home-link {
+            text-decoration: none;
+            color: inherit;
+            transition: opacity 0.2s;
+        }
+        .home-link:hover { opacity: 0.75; }
+
+        /* ── Form area ── */
+        .form-area {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 32px;
+        }
+
+        .form-card {
+            background: #f1f5fb;
+            border-radius: 16px;
+            padding: 36px 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        }
+
+        .field-group { margin-bottom: 22px; }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .field-label span { font-size: 17px; }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-row:focus-within {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .input-icon {
+            padding: 0 14px;
+            font-size: 17px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .input-row input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 13px 14px 13px 0;
+            font-size: 15px;
+            color: #334155;
+            background: transparent;
+        }
+        .input-row input::placeholder { color: #94a3b8; }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(37,99,235,0.35);
+        }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        .switch-link a {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .switch-link a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .form-card { padding: 24px 20px; }
+            .sidebar { width: 50px; }
+            .sidebar.expanded { width: 160px; }
+            .page-wrapper { margin-left: 50px; padding: 10px; }
+            .page-wrapper.sidebar-expanded { margin-left: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button class="hamburger" id="hamburgerBtn" title="Toggle Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="sidebar-link" title="History">
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-label">History</span>
+            </a>
+            <a href="login.html" class="sidebar-link" title="Sign Up / Login">
+                <span class="sidebar-icon">👤</span>
+                <span class="sidebar-label">Sign Up / Login</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main wrapper -->
+    <div class="page-wrapper" id="pageWrapper">
+        <div class="container">
+
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <div class="robot-icon">🤖</div>
+                    <a href="index.html" class="home-link"><h1>AI Study Assistant</h1></a>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="form-area">
+                <h2 class="form-title">Login</h2>
+                <p class="form-subtitle">Welcome back! Sign in to continue using the AI Study Assistant</p>
+
+                <div class="form-card">
+                    <form id="loginForm">
+
+                        <div class="field-group">
+                            <div class="field-label"><span>✉️</span> Email</div>
+                            <div class="input-row">
+                                <span class="input-icon">✉️</span>
+                                <input type="email" id="email" placeholder="Enter your email address" required>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <div class="field-label"><span>🔒</span> Password</div>
+                            <div class="input-row">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="password" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary">Login</button>
+                    </form>
+
+                    <p class="switch-link">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const pageWrapper = document.getElementById('pageWrapper');
+        document.getElementById('hamburgerBtn').addEventListener('click', () => {
+            sidebar.classList.toggle('expanded');
+            pageWrapper.classList.toggle('sidebar-expanded');
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Login successful! Redirecting to Study Assistant...');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
