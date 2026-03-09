@@ -257,11 +257,11 @@
             <span></span><span></span><span></span>
         </button>
         <nav class="sidebar-nav">
-            <a href="index.html" class="sidebar-link" title="History">
+            <a href="/" class="sidebar-link" title="History">
                 <span class="sidebar-icon">⚙️</span>
                 <span class="sidebar-label">History</span>
             </a>
-            <a href="login.html" class="sidebar-link" title="Sign Up / Login">
+            <a href="/login.html" class="sidebar-link" title="Sign Up / Login">
                 <span class="sidebar-icon">👤</span>
                 <span class="sidebar-label">Sign Up / Login</span>
             </a>
@@ -276,7 +276,7 @@
             <div class="header">
                 <div class="logo">
                     <div class="robot-icon">🤖</div>
-                    <a href="index.html" class="home-link"><h1>AI Study Assistant</h1></a>
+                    <a href="/" class="home-link"><h1>AI Study Assistant</h1></a>
                 </div>
             </div>
 
@@ -307,7 +307,7 @@
                         <button type="submit" class="btn-primary">Login</button>
                     </form>
 
-                    <p class="switch-link">Don't have an account? <a href="signup.html">Sign Up</a></p>
+                    <p class="switch-link">Don't have an account? <a href="/signup.html">Sign Up</a></p>
                 </div>
             </div>
 
@@ -322,11 +322,54 @@
             pageWrapper.classList.toggle('sidebar-expanded');
         });
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            alert('Login successful! Redirecting to Study Assistant...');
-            window.location.href = 'index.html';
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn      = document.querySelector('.btn-primary');
+
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Save user info in sessionStorage
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    showMessage('✅ Login successful! Redirecting...', 'success');
+                    setTimeout(() => { window.location.href = '/'; }, 1200);
+                } else {
+                    showMessage('❌ ' + (data.detail || 'Invalid email or password.'), 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Login';
+                }
+            } catch (err) {
+                showMessage('❌ Cannot connect to server. Make sure FastAPI is running.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
         });
+
+        function showMessage(msg, type) {
+            let el = document.getElementById('formMsg');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'formMsg';
+                el.style.cssText = 'margin-top:14px; padding:12px 16px; border-radius:8px; font-size:14px; font-weight:600; text-align:center;';
+                document.querySelector('.form-card').appendChild(el);
+            }
+            el.textContent = msg;
+            el.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+            el.style.color      = type === 'success' ? '#16a34a' : '#dc2626';
+        }
     </script>
 </body>
 </html>

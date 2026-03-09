@@ -21,6 +21,8 @@ jiter==0.13.0
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
+mysql-connector-python
+bcrypt
 openai==2.21.0
 pydantic==2.12.5
 pydantic-extra-types==2.11.0

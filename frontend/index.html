@@ -17,10 +17,24 @@
                 <span class="sidebar-icon">⚙️</span>
                 <span class="sidebar-label">History</span>
             </a>
-            <a href="login.html" class="sidebar-link" title="Sign Up / Login">
+
+            <!-- Shows when NOT logged in -->
+            <a href="/login.html" class="sidebar-link" id="loginLink" title="Sign Up / Login">
                 <span class="sidebar-icon">👤</span>
                 <span class="sidebar-label">Sign Up / Login</span>
             </a>
+
+            <!-- Shows when logged in -->
+            <div class="sidebar-user" id="userSection" style="display:none;">
+                <div class="sidebar-link user-info-link" title="Logged in user">
+                    <span class="sidebar-icon">🟢</span>
+                    <span class="sidebar-label" id="sidebarUsername">User</span>
+                </div>
+                <button class="sidebar-link logout-btn" id="logoutBtn" title="Logout">
+                    <span class="sidebar-icon">🚪</span>
+                    <span class="sidebar-label">Logout</span>
+                </button>
+            </div>
         </nav>
     </div>
 
@@ -30,7 +44,7 @@
         <div class="header">
             <div class="logo">
                 <div class="robot-icon">🤖</div>
-                <a href="index.html" class="home-link"><h1>AI Study Assistant</h1></a>
+                <a href="/" class="home-link"><h1>AI Study Assistant</h1></a>
             </div>
         </div>
 
@@ -76,13 +90,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/app.js"></script>
     <script>
-        const sidebar = document.getElementById('sidebar');
+        const sidebar    = document.getElementById('sidebar');
         const pageWrapper = document.getElementById('pageWrapper');
         const hamburgerBtn = document.getElementById('hamburgerBtn');
 
         hamburgerBtn.addEventListener('click', () => {
             sidebar.classList.toggle('expanded');
             pageWrapper.classList.toggle('sidebar-expanded');
+        });
+
+        // ── Auth state check ──
+        const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+        if (user) {
+            // Logged in → show username + logout
+            document.getElementById('loginLink').style.display  = 'none';
+            document.getElementById('userSection').style.display = 'block';
+            document.getElementById('sidebarUsername').textContent = user.username || user.email;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            sessionStorage.removeItem('user');
+            window.location.href = '/login.html';
         });
     </script>
 </body>

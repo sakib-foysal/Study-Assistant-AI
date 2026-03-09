@@ -257,11 +257,11 @@
             <span></span><span></span><span></span>
         </button>
         <nav class="sidebar-nav">
-            <a href="index.html" class="sidebar-link" title="History">
+            <a href="/" class="sidebar-link" title="History">
                 <span class="sidebar-icon">⚙️</span>
                 <span class="sidebar-label">History</span>
             </a>
-            <a href="login.html" class="sidebar-link" title="Sign Up / Login">
+            <a href="/login.html" class="sidebar-link" title="Sign Up / Login">
                 <span class="sidebar-icon">👤</span>
                 <span class="sidebar-label">Sign Up / Login</span>
             </a>
@@ -276,7 +276,7 @@
             <div class="header">
                 <div class="logo">
                     <div class="robot-icon">🤖</div>
-                    <a href="index.html" class="home-link"><h1>AI Study Assistant</h1></a>
+                    <a href="/" class="home-link"><h1>AI Study Assistant</h1></a>
                 </div>
             </div>
 
@@ -323,7 +323,7 @@
                         <button type="submit" class="btn-primary">Sign Up</button>
                     </form>
 
-                    <p class="switch-link">Already have an account? <a href="login.html">Login</a></p>
+                    <p class="switch-link">Already have an account? <a href="/login.html">Login</a></p>
                 </div>
             </div>
 
@@ -338,17 +338,64 @@
             pageWrapper.classList.toggle('sidebar-expanded');
         });
 
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email    = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirm  = document.getElementById('confirmPassword').value;
+            const btn      = document.querySelector('.btn-primary');
+
+            // Client-side validation
             if (password !== confirm) {
-                alert('Passwords do not match!');
+                showMessage('Passwords do not match!', 'error');
                 return;
             }
-            alert('Account created successfully! Please login.');
-            window.location.href = 'login.html';
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showMessage('✅ Account created successfully! Redirecting to login...', 'success');
+                    setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+                } else {
+                    showMessage('❌ ' + (data.detail || 'Signup failed. Please try again.'), 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Sign Up';
+                }
+            } catch (err) {
+                showMessage('❌ Cannot connect to server. Make sure FastAPI is running.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
         });
+
+        function showMessage(msg, type) {
+            let el = document.getElementById('formMsg');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'formMsg';
+                el.style.cssText = 'margin-top:14px; padding:12px 16px; border-radius:8px; font-size:14px; font-weight:600; text-align:center;';
+                document.querySelector('.form-card').appendChild(el);
+            }
+            el.textContent = msg;
+            el.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+            el.style.color      = type === 'success' ? '#16a34a' : '#dc2626';
+        }
     </script>
 </body>
 </html>
