@@ -90,7 +90,7 @@ Create a `.env` file in `backend/`:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
-GEMINI_MODEL=gemini-1.5-flash
+GEMINI_MODEL=2.5-flash-lite
 ```
 
 ---
