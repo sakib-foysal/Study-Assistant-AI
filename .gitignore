@@ -1,7 +1,45 @@
 # Python
 __pycache__/
 *.pyc
-venv/
+*.pyo
+*.pyd
+*.log
 
-# Env file
+# Virtual Environment
+venv/
+.env/
+.env.*
+
+# Environment variables (IMPORTANT)
 .env
+
+# Database
+*.db
+*.sqlite3
+
+# FastAPI / logs
+logs/
+*.log
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if frontend uses)
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Cache
+.cache/
+
+# PDF (optional)
+*.pdf
+
+# Screenshots (optional)
+screenshots/
