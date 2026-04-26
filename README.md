@@ -164,7 +164,9 @@ Uses MySQL database (XAMPP).
 
 ## 📸 Screenshots
 
-*Add screenshots of your UI here*
+| Home Page | Result |
+|----------|--------|
+| ![Home](screenshots/home.png) | ![Result](screenshots/result.png) |
 
 ---
 
