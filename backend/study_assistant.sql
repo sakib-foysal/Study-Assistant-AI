@@ -21,5 +21,22 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Step 4: Verify
-SELECT 'Database and table created successfully!' AS status;
+
+-- Step 4: Create history table
+CREATE TABLE IF NOT EXISTS history (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT NOT NULL,
+    topic       VARCHAR(255) NOT NULL,
+    summary     TEXT NOT NULL,
+    mcqs        LONGTEXT NOT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_history_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- Step 5: Verify
+SELECT 'Database and tables created successfully!' AS status;
+

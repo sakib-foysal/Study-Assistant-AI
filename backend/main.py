@@ -38,6 +38,7 @@ class GenerateRequest(BaseModel):
     topic: str
     difficulty: Optional[str] = "medium"
     number_of_questions: Optional[int] = 5
+    user_id: Optional[int] = None
 
 
 class MCQ(BaseModel):
@@ -96,6 +97,14 @@ def generate(payload: GenerateRequest):
             payload.difficulty
         )
 
+        if payload.user_id:
+            database.save_history(
+                payload.user_id,
+                payload.topic,
+                summary,
+                mcqs
+            )
+
         return {
             "summary": summary,
             "mcqs": mcqs
@@ -128,6 +137,14 @@ def generate_mcq(payload: GenerateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/history/{user_id}")
+def get_history(user_id: int):
+    try:
+        return database.get_history_by_user(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/generate")
 def generate_get_info():
     return {
@@ -135,7 +152,8 @@ def generate_get_info():
         "example_body": {
             "topic": "Operating System",
             "difficulty": "easy",
-            "number_of_questions": 2
+            "number_of_questions": 2,
+            "user_id": 1
         }
     }
 
@@ -224,5 +242,5 @@ def debug_llm():
     return {
         "gemini_key_set": bool(gemini_key),
         "requests_installed": requests_ok,
-        "gemini_model_env": os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        "gemini_model_env": os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
     }

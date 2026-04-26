@@ -8,6 +8,7 @@ from mysql.connector import Error
 import bcrypt
 import hashlib
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -107,3 +108,60 @@ def authenticate_user(email: str, plain_password: str) -> dict | None:
     # Remove password from returned data
     user.pop("password", None)
     return user
+
+
+
+
+# ── History operations ──
+
+def save_history(user_id: int, topic: str, summary: str, mcqs: list) -> dict:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            INSERT INTO history (user_id, topic, summary, mcqs)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, topic, summary, json.dumps(mcqs)),
+        )
+        conn.commit()
+
+        return {
+            "id": cursor.lastrowid,
+            "user_id": user_id,
+            "topic": topic
+        }
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_history_by_user(user_id: int) -> list:
+    conn = get_connection()
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT id, topic, summary, mcqs, created_at
+            FROM history
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            """,
+            (user_id,),
+        )
+
+        rows = cursor.fetchall()
+
+        for row in rows:
+            try:
+                row["mcqs"] = json.loads(row["mcqs"])
+            except Exception:
+                row["mcqs"] = []
+
+            row["created_at"] = str(row["created_at"])
+
+        return rows
+    finally:
+        cursor.close()
+        conn.close()

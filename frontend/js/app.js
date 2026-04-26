@@ -6,12 +6,19 @@ document.getElementById('topicInput').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') generateContent();
 });
 
+const historyBtn = document.getElementById('historyBtn');
+if (historyBtn) {
+  historyBtn.addEventListener('click', loadHistory);
+}
+
 async function generateContent() {
   const topic = document.getElementById('topicInput').value.trim();
   if (!topic) {
     alert('Please enter a study topic');
     return;
   }
+
+  const user = JSON.parse(sessionStorage.getItem('user') || 'null');
 
   currentData.topic = topic;
 
@@ -29,7 +36,8 @@ async function generateContent() {
       body: JSON.stringify({
         topic: topic,
         difficulty: 'easy',
-        number_of_questions: 4
+        number_of_questions: 4,
+        user_id: user ? user.id : null
       })
     });
 
@@ -64,11 +72,67 @@ async function generateContent() {
   } catch (error) {
     console.error('Error:', error);
     document.getElementById('summaryContent').innerHTML = `
-        <div style="color:#ef4444;text-align:center;padding:20px">
-            <p>❌ FRONTEND ERROR: ${error.message}</p>
-        </div>`;
+      <div style="color:#ef4444;text-align:center;padding:20px">
+        <p>❌ FRONTEND ERROR: ${error.message}</p>
+      </div>`;
     document.getElementById('mcqContent').innerHTML = '';
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate';
+  }
 }
+
+async function loadHistory(e) {
+  e.preventDefault();
+
+  const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+
+  if (!user) {
+    alert('Please login first to view history.');
+    window.location.href = '/login.html';
+    return;
+  }
+
+  try {
+    showLoading('summaryContent');
+    document.getElementById('mcqContent').innerHTML = '';
+
+    const response = await fetch(`/history/${user.id}`);
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || 'Failed to load history');
+    }
+
+    const history = await response.json();
+
+    if (!history.length) {
+      document.getElementById('summaryContent').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📚</div>
+          <p>No history found</p>
+        </div>`;
+      return;
+    }
+
+    const html = history.map((item) => `
+      <div class="mcq-item">
+        <h3>${item.topic}</h3>
+        <p>${item.summary}</p>
+        <small>${item.created_at}</small>
+      </div>
+    `).join('');
+
+    document.getElementById('summaryContent').innerHTML = html;
+    document.getElementById('mcqContent').innerHTML = '';
+
+  } catch (error) {
+    console.error('History Error:', error);
+    document.getElementById('summaryContent').innerHTML = `
+      <div style="color:#ef4444;text-align:center;padding:20px">
+        <p>❌ HISTORY ERROR: ${error.message}</p>
+      </div>`;
+  }
 }
 
 function showLoading(id) {
